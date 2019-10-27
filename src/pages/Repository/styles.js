@@ -1,4 +1,4 @@
-import styled from 'styled-components';
+import styled, { css } from 'styled-components';
 
 export const Loading = styled.div`
   color: #fff;
@@ -47,6 +47,13 @@ export const IssueList = styled.ul`
   margin-top: 30px;
   border-top: 1px solid #eee;
   list-style: none;
+
+  h2 {
+    text-align: center;
+    margin-bottom: 20px;
+    font-weight: 600;
+    font-size: 18px;
+  }
 
   li {
     display: flex;
@@ -100,5 +107,66 @@ export const IssueList = styled.ul`
         color: #999;
       }
     }
+  }
+`;
+
+export const IssuesFilters = styled.div`
+  display: flex;
+  justify-content: center;
+  margin-bottom: 30px;
+`;
+
+export const IssuesFiltersButton = styled.button.attrs({
+  type: 'button',
+})`
+  background-color: #7159c1;
+  color: #fff;
+  text-decoration: none;
+  cursor: pointer;
+  border: 0px;
+  padding: 5px;
+  margin: 0;
+  width: 100px;
+  height: 40px;
+  border: 1px solid #fff;
+  ${props =>
+    props.isSelected &&
+    css`
+      background-color: #000;
+      border-style: inset;
+    `}
+
+  &:first-child {
+    border-radius: 4px 0px 0px 4px;
+  }
+  &:last-child {
+    border-radius: 0px 4px 4px 0px;
+  }
+
+  &:hover {
+    background-color: #3a2970;
+  }
+`;
+
+export const IssueListPagination = styled.div`
+  margin-top: 20px;
+  display: flex;
+  justify-content: space-between;
+`;
+
+export const IssueListPaginationButton = styled.button`
+  text-decoration: none;
+  background-color: transparent;
+  cursor: pointer;
+  color: #000;
+  border-style: none;
+
+  &:hover {
+    color: #7159c1;
+  }
+
+  &[disabled] {
+    cursor: not-allowed;
+    color: #000;
   }
 `;

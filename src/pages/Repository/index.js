@@ -1,34 +1,61 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import api from '../../services/api';
-import { Loading, Owner, IssueList } from './styles';
+import {
+  Loading,
+  Owner,
+  IssueList,
+  IssuesFilters,
+  IssuesFiltersButton,
+  IssueListPagination,
+  IssueListPaginationButton,
+} from './styles';
 import Container from '../../components/Container';
 
 export default function Repository({ match }) {
   const [repository, setRepository] = useState([]);
   const [issues, setIssues] = useState([]);
   const [loading, setLoading] = useState([]);
+  const [filter, setFilter] = useState('open');
+  const [page, setPage] = useState(1);
+  const repoName = decodeURIComponent(match.params.repository);
+
+  const getIssuesRequest = useCallback(() => {
+    return api.get(`/repos/${repoName}/issues`, {
+      params: {
+        state: filter,
+        per_page: 5,
+        page,
+      },
+    });
+  }, [repoName, filter, page]);
 
   useEffect(() => {
-    const repoName = decodeURIComponent(match.params.repository);
     async function fetchData() {
       setLoading(true);
       const [resRepository, resIssue] = await Promise.all([
         api.get(`/repos/${repoName}`),
-        api.get(`/repos/${repoName}/issues`, {
-          params: {
-            state: 'open',
-            per_page: 5,
-          },
-        }),
+        getIssuesRequest(),
       ]);
       setRepository(resRepository.data);
       setIssues(resIssue.data);
       setLoading(false);
     }
     fetchData();
-  }, [match]);
+  }, [match, repoName, getIssuesRequest]);
+
+  useEffect(() => {
+    async function fetchData() {
+      setLoading(true);
+      const response = await getIssuesRequest();
+      setIssues(response.data);
+      setLoading(false);
+    }
+    fetchData();
+  }, [filter, page, getIssuesRequest]);
+
+  useEffect(() => setPage(1), [match, filter]);
 
   if (loading) {
     return <Loading>Carregando...</Loading>;
@@ -42,6 +69,27 @@ export default function Repository({ match }) {
         <p>{repository.description}</p>
       </Owner>
       <IssueList>
+        <h2>Issues</h2>
+        <IssuesFilters>
+          <IssuesFiltersButton
+            isSelected={filter === 'open'}
+            onClick={() => setFilter('open')}
+          >
+            Abertas
+          </IssuesFiltersButton>
+          <IssuesFiltersButton
+            isSelected={filter === 'closed'}
+            onClick={() => setFilter('closed')}
+          >
+            Fechadas
+          </IssuesFiltersButton>
+          <IssuesFiltersButton
+            isSelected={filter === 'all'}
+            onClick={() => setFilter('all')}
+          >
+            Todas
+          </IssuesFiltersButton>
+        </IssuesFilters>
         {issues.map(issue => (
           <li key={String(issue.id)}>
             <img src={issue.user.avatar_url} alt={issue.user.login} />
@@ -62,6 +110,22 @@ export default function Repository({ match }) {
             </div>
           </li>
         ))}
+        <IssueListPagination>
+          <IssueListPaginationButton
+            type="button"
+            disabled={page === 1}
+            onClick={() => setPage(Math.max(1, page - 1))}
+          >
+            Página Anterior
+          </IssueListPaginationButton>
+          <IssueListPaginationButton
+            type="button"
+            disabled={issues.length < 5}
+            onClick={() => setPage(page + 1)}
+          >
+            Próxima Página
+          </IssueListPaginationButton>
+        </IssueListPagination>
       </IssueList>
     </Container>
   );
